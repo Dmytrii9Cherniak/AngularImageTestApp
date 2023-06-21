@@ -1,0 +1,13 @@
+div {
+  width: 100%;
+  max-height: 100vh;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    max-width: 96vw;
+    max-height: 96vh;
+  }
+}
