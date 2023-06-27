@@ -1,11 +1,11 @@
-import { Component, ViewChild, ElementRef, OnInit, AfterViewInit, HostListener } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit, HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-paint',
   templateUrl: 'paint.component.html',
   styleUrls: ['paint.component.scss']
 })
-export class PaintComponent implements OnInit, AfterViewInit {
+export class PaintComponent implements AfterViewInit {
 
   @ViewChild('canvasEl') canvas: ElementRef<HTMLCanvasElement> | undefined;
   @ViewChild('container') container: ElementRef<HTMLDivElement> | undefined;
@@ -16,10 +16,7 @@ export class PaintComponent implements OnInit, AfterViewInit {
   private backgroundImage: HTMLImageElement | null = null;
   private lines: { start: { x: number, y: number }, end: { x: number, y: number } }[] = [];
 
-  ngOnInit() {
-  }
-
-  ngAfterViewInit() {
+  ngAfterViewInit() :void {
     const canvas = this.canvas?.nativeElement;
     if (canvas) {
       this.context = canvas.getContext('2d');
@@ -29,13 +26,13 @@ export class PaintComponent implements OnInit, AfterViewInit {
   }
 
   @HostListener('window:resize')
-  onResize() {
+  onResize():void {
     this.resizeCanvas();
     this.loadBackgroundImage();
     this.draw();
   }
 
-  private resizeCanvas() {
+  public resizeCanvas() :void {
     const canvas = this.canvas?.nativeElement;
     const container = this.container?.nativeElement;
     if (canvas && container) {
@@ -44,7 +41,7 @@ export class PaintComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private loadBackgroundImage() {
+  private loadBackgroundImage() :void {
     const canvas = this.canvas?.nativeElement;
     if (!canvas || !this.context) return;
     const image = new Image();
@@ -55,12 +52,12 @@ export class PaintComponent implements OnInit, AfterViewInit {
     image.src = 'assets/media/img.png';
   }
 
-  startDrawing(event: MouseEvent) {
+  public startDrawing(event: MouseEvent) :void {
     const canvas = this.canvas?.nativeElement;
     if (!canvas || !this.context) return;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
+    const rect: DOMRect = canvas.getBoundingClientRect();
+    const mouseX: number = event.clientX - rect.left;
+    const mouseY: number = event.clientY - rect.top;
 
     if (this.midPoint && this.isInsideCircle(mouseX, mouseY, this.midPoint.x, this.midPoint.y, 5)) {
       this.isDrawing = false;
@@ -71,7 +68,7 @@ export class PaintComponent implements OnInit, AfterViewInit {
     }
   }
 
-  draw(event?: MouseEvent) {
+  public draw(event?: MouseEvent) :void {
     if (!this.context || !this.backgroundImage) return;
     const canvas = this.canvas?.nativeElement;
     if (canvas) {
@@ -91,7 +88,7 @@ export class PaintComponent implements OnInit, AfterViewInit {
     }
   }
 
-  stopDrawing(event: MouseEvent) {
+  public stopDrawing(event: MouseEvent) :void {
     if (this.isDrawing && event && this.startPoint) {
       const canvas = this.canvas?.nativeElement;
       if (canvas) {
@@ -105,7 +102,7 @@ export class PaintComponent implements OnInit, AfterViewInit {
     }
   }
 
-  drawMidPoint() {
+  public drawMidPoint() :void {
     if (!this.context || !this.midPoint) return;
     this.context.beginPath();
     this.context.arc(this.midPoint.x, this.midPoint.y, 5, 0, 2 * Math.PI);
@@ -113,32 +110,32 @@ export class PaintComponent implements OnInit, AfterViewInit {
     this.context.fill();
   }
 
-  handleClick(event: MouseEvent) {
+  public handleClick(event: MouseEvent) {
     const canvas = this.canvas?.nativeElement;
     if (!canvas || !this.context) return;
     const rect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
+    const mouseX :number = event.clientX - rect.left;
+    const mouseY :number = event.clientY - rect.top;
 
     if (this.midPoint && this.isInsideCircle(mouseX, mouseY, this.midPoint.x, this.midPoint.y, 5)) {
       this.startDrawing(event);
     }
   }
 
-  calculateMidPoint(startPoint: { x: number; y: number }, endPoint: { x: number; y: number }): { x: number; y: number } {
+  public calculateMidPoint(startPoint: { x: number; y: number }, endPoint: { x: number; y: number }): { x: number; y: number } {
     return {
       x: (startPoint.x + endPoint.x) / 2,
       y: (startPoint.y + endPoint.y) / 2
     };
   }
 
-  isInsideCircle(x: number, y: number, centerX: number, centerY: number, radius: number): boolean {
+  public isInsideCircle(x: number, y: number, centerX: number, centerY: number, radius: number): boolean {
     const dx = x - centerX;
     const dy = y - centerY;
     return dx * dx + dy * dy <= radius * radius;
   }
 
-  drawLines() {
+  public drawLines() :void {
     if (!this.context) return;
     this.context.strokeStyle = 'black';
     this.context.lineWidth = 2;
