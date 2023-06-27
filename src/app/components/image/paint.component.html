@@ -1,0 +1,8 @@
+<div #container>
+  <canvas #canvasEl
+          (mousedown)="startDrawing($event)"
+          (mousemove)="draw($event)"
+          (mouseup)="stopDrawing($event)"
+          (click)="handleClick($event)">
+  </canvas>
+</div>

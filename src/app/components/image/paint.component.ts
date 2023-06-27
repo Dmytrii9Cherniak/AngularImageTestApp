@@ -2,17 +2,8 @@ import { Component, ViewChild, ElementRef, OnInit, AfterViewInit, HostListener }
 
 @Component({
   selector: 'app-paint',
-  template: `
-    <div #container style="position: relative;">
-      <canvas #canvasEl
-              (mousedown)="startDrawing($event)"
-              (mousemove)="draw($event)"
-              (mouseup)="stopDrawing($event)"
-              (click)="handleClick($event)">
-      </canvas>
-    </div>
-  `,
-  styles: ['canvas { border: 0.1px solid; max-width: 100vw; max-height: 100vh; height: auto }']
+  templateUrl: 'paint.component.html',
+  styleUrls: ['paint.component.scss']
 })
 export class PaintComponent implements OnInit, AfterViewInit {
 
@@ -22,6 +13,8 @@ export class PaintComponent implements OnInit, AfterViewInit {
   private isDrawing: boolean = false;
   private startPoint: { x: number; y: number } | null = null;
   private midPoint: { x: number; y: number } | null = null;
+  private backgroundImage: HTMLImageElement | null = null;
+  private lines: { start: { x: number, y: number }, end: { x: number, y: number } }[] = [];
 
   ngOnInit() {
   }
@@ -31,12 +24,15 @@ export class PaintComponent implements OnInit, AfterViewInit {
     if (canvas) {
       this.context = canvas.getContext('2d');
       this.resizeCanvas();
+      this.loadBackgroundImage();
     }
   }
 
   @HostListener('window:resize')
   onResize() {
     this.resizeCanvas();
+    this.loadBackgroundImage();
+    this.draw();
   }
 
   private resizeCanvas() {
@@ -46,6 +42,17 @@ export class PaintComponent implements OnInit, AfterViewInit {
       canvas.width = container.clientWidth;
       canvas.height = container.clientHeight;
     }
+  }
+
+  private loadBackgroundImage() {
+    const canvas = this.canvas?.nativeElement;
+    if (!canvas || !this.context) return;
+    const image = new Image();
+    image.onload = () => {
+      this.backgroundImage = image;
+      this.draw();
+    };
+    image.src = 'assets/media/img.png';
   }
 
   startDrawing(event: MouseEvent) {
@@ -64,23 +71,38 @@ export class PaintComponent implements OnInit, AfterViewInit {
     }
   }
 
-  draw(event: MouseEvent) {
-    if (!this.isDrawing || !this.context || !this.startPoint) return;
+  draw(event?: MouseEvent) {
+    if (!this.context || !this.backgroundImage) return;
     const canvas = this.canvas?.nativeElement;
     if (canvas) {
       this.context.clearRect(0, 0, canvas.width, canvas.height);
-      this.context.beginPath();
-      this.context.moveTo(this.startPoint.x, this.startPoint.y);
-      this.context.lineTo(event.offsetX, event.offsetY);
-      this.context.stroke();
-      this.midPoint = this.calculateMidPoint(this.startPoint, { x: event.offsetX, y: event.offsetY });
-      this.drawMidPoint();
+      this.context.drawImage(this.backgroundImage, 0, 0, canvas.width, canvas.height);
+      this.drawLines();
+      if (this.isDrawing && event && this.startPoint) {
+        this.context.beginPath();
+        this.context.moveTo(this.startPoint.x, this.startPoint.y);
+        this.context.lineTo(event.offsetX, event.offsetY);
+        this.context.stroke();
+        this.midPoint = this.calculateMidPoint(this.startPoint, { x: event.offsetX, y: event.offsetY });
+        this.drawMidPoint();
+      } else if (this.midPoint) {
+        this.drawMidPoint();
+      }
     }
   }
 
   stopDrawing(event: MouseEvent) {
-    this.isDrawing = false;
-    this.drawMidPoint();
+    if (this.isDrawing && event && this.startPoint) {
+      const canvas = this.canvas?.nativeElement;
+      if (canvas) {
+        const endPoint = { x: event.offsetX, y: event.offsetY };
+        this.lines.push({ start: this.startPoint, end: endPoint });
+        this.startPoint = null;
+        this.midPoint = null;
+        this.isDrawing = false;
+        this.draw();
+      }
+    }
   }
 
   drawMidPoint() {
@@ -114,5 +136,17 @@ export class PaintComponent implements OnInit, AfterViewInit {
     const dx = x - centerX;
     const dy = y - centerY;
     return dx * dx + dy * dy <= radius * radius;
+  }
+
+  drawLines() {
+    if (!this.context) return;
+    this.context.strokeStyle = 'black';
+    this.context.lineWidth = 2;
+    for (const line of this.lines) {
+      this.context.beginPath();
+      this.context.moveTo(line.start.x, line.start.y);
+      this.context.lineTo(line.end.x, line.end.y);
+      this.context.stroke();
+    }
   }
 }
