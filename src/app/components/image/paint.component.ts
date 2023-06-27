@@ -1,4 +1,6 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, HostListener } from '@angular/core';
+import { PointsModel } from '../../models/points.model';
+import { LinesModel } from '../../models/lines.model';
 
 @Component({
   selector: 'app-paint',
@@ -11,10 +13,10 @@ export class PaintComponent implements AfterViewInit {
   @ViewChild('container') container: ElementRef<HTMLDivElement> | undefined;
   private context: CanvasRenderingContext2D | null = null;
   private isDrawing: boolean = false;
-  private startPoint: { x: number; y: number } | null = null;
-  private midPoint: { x: number; y: number } | null = null;
+  private startPoint: PointsModel | null = null;
+  private midPoint: PointsModel | null = null;
   private backgroundImage: HTMLImageElement | null = null;
-  private lines: { start: { x: number, y: number }, end: { x: number, y: number } }[] = [];
+  private lines: LinesModel[] = [];
 
   ngAfterViewInit() :void {
     const canvas = this.canvas?.nativeElement;
@@ -45,7 +47,7 @@ export class PaintComponent implements AfterViewInit {
     const canvas = this.canvas?.nativeElement;
     if (!canvas || !this.context) return;
     const image = new Image();
-    image.onload = () => {
+    image.onload = (): void => {
       this.backgroundImage = image;
       this.draw();
     };
@@ -84,7 +86,7 @@ export class PaintComponent implements AfterViewInit {
       }
 
       if (this.isDrawing && event && this.startPoint) {
-        const currentPoint = { x: event.offsetX, y: event.offsetY };
+        const currentPoint: PointsModel = { x: event.offsetX, y: event.offsetY };
         this.context.beginPath();
         this.context.moveTo(this.startPoint.x, this.startPoint.y);
         this.context.lineTo(currentPoint.x, currentPoint.y);
@@ -107,8 +109,8 @@ export class PaintComponent implements AfterViewInit {
     }
   }
 
-  public drawMidPoint(startPoint: { x: number; y: number }, endPoint: { x: number; y: number }): void {
-    const midPoint = this.calculateMidPoint(startPoint, endPoint);
+  public drawMidPoint(startPoint: PointsModel, endPoint: PointsModel): void {
+    const midPoint: PointsModel = this.calculateMidPoint(startPoint, endPoint);
     if (this.context) {
       this.context.beginPath();
       this.context.arc(midPoint.x, midPoint.y, 5, 0, 2 * Math.PI);
@@ -117,10 +119,10 @@ export class PaintComponent implements AfterViewInit {
     }
   }
 
-  public handleClick(event: MouseEvent) {
+  public handleClick(event: MouseEvent) :void {
     const canvas = this.canvas?.nativeElement;
     if (!canvas || !this.context) return;
-    const rect = canvas.getBoundingClientRect();
+    const rect :DOMRect = canvas.getBoundingClientRect();
     const mouseX :number = event.clientX - rect.left;
     const mouseY :number = event.clientY - rect.top;
 
@@ -129,7 +131,7 @@ export class PaintComponent implements AfterViewInit {
     }
   }
 
-  public calculateMidPoint(startPoint: { x: number; y: number }, endPoint: { x: number; y: number }): { x: number; y: number } {
+  public calculateMidPoint(startPoint: PointsModel, endPoint: PointsModel): PointsModel {
     return {
       x: (startPoint.x + endPoint.x) / 2,
       y: (startPoint.y + endPoint.y) / 2
@@ -137,8 +139,8 @@ export class PaintComponent implements AfterViewInit {
   }
 
   public isInsideCircle(x: number, y: number, centerX: number, centerY: number, radius: number): boolean {
-    const dx = x - centerX;
-    const dy = y - centerY;
+    const dx :number = x - centerX;
+    const dy :number = y - centerY;
     return dx * dx + dy * dy <= radius * radius;
   }
 
